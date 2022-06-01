@@ -1,8 +1,8 @@
 class Card {
-    constructor(eng, rus, img) {
+    constructor(eng, rus, id) {
         this.eng = eng,
             this.rus = rus,
-            this.img = img
+            this.id = id
     }
     render() {
         const parentCard = document.querySelector('.card__box');
@@ -15,7 +15,7 @@ class Card {
         </div>
         <div class="answer">
            <input class="check__translate" type="text" name="check">
-           <button id="check__btn">Проверить</button>
+           <button class="check__btn">Проверить</button>
         </div>
         `;
 
@@ -23,15 +23,12 @@ class Card {
     }
 
 }
-const cards = [];
+let cards = [{ru: 'дом', eng: 'home', id: 0.3093031704097471}];
+
 const rusInput = document.querySelector('.rus');
 const engInput = document.querySelector('.eng');
 const addBtn = document.querySelector('.add');
 const startBtn = document.querySelector('.start');
-const checkBtn = document.getElementById('check__btn');
-
-let doneCounter = 0;
-let wrongCounter = 1;
 
 
 
@@ -40,62 +37,119 @@ startBtn.addEventListener('click', renderCard);
 
 
 function renderCard() {
-    const doneCounterPlace = document.querySelector('.done');
-    doneCounterPlace.innerHTML = `${doneCounter}`;
-    const wrongCounterPlace = document.querySelector('.wrong');
-    wrongCounterPlace.innerHTML = `${wrongCounter}`;
-    console.log(wrongCounterPlace)
-    console.log(wrongCounter)
-
-    document.querySelectorAll('.counter').forEach(counter => {
-        counter.style.visibility = 'visible';
-    });
-
     try {
         document.querySelector('.card').remove();
+        statusMessage.remove();
     } catch { }
 
-    const card = cards[Math.floor(Math.random() * cards.length)];
-    let { ru: ru, eng: eng, img: img } = card;
-    const newCard = new Card(eng, ru, img).render();
+    getRandomCard();
+    toggleTranslate();
+
+    document.querySelector('.check__btn').addEventListener('click', checkTranslate);
 
 
-    const engP = document.querySelector('.engP');
-    engP.style.display = 'none';
-
-    const checkBtn = document.getElementById('check__btn');
-    checkBtn.addEventListener('click', checkTranslate);
-
-    function checkTranslate() {
-        const answer = document.querySelector('.check__translate');
-        const div = document.createElement('div');
-        document.querySelector('.card').append(div);
-        if (answer.value === engP.innerHTML) {
-            div.textContent = 'Верно';
-          
-            doneCounter++;
-            setTimeout(() => {
-                document.querySelector('.card').remove();
-                renderCard();
-            }, 1500);
-
-        } else {
-            div.textContent = 'Попробуйте еще раз';
-            console.log(wrongCounter)
-            
-            setTimeout(() => {
-                div.remove();
-            }, 1500);
-        }
-
-    }
 }
+
+console.log(document.querySelector('.check__btn'))
+
+
+checkTranslate = () => {
+    const trueAnswer = document.querySelector('.engP');
+    const answer = document.querySelector('.check__translate');
+    
+    const statusMessage = document.createElement('div');
+    document.querySelector('.card').append(statusMessage);
+
+    if(statusMessage){
+        document.querySelector('.check__btn').disabled = true;
+    }
+    if (answer.value === trueAnswer.innerHTML) {
+        statusMessage.textContent = 'Верно';
+        setTimeout(() => {
+            document.querySelector('.card').remove();
+            renderCard();
+        }, 1000);
+    } else {
+        statusMessage.textContent = 'Попробуйте еще раз';
+
+        setTimeout(() => {
+            statusMessage.remove();
+            renderCard();
+        }, 1000);
+    }
+
+};
+
+
+toggleTranslate = () => {
+    const engP = document.querySelector('.engP');
+
+    engP.style.display = 'none';
+};
+
+
+
+getRandomCard =  (res) => {
+    // try {
+    //     fetch('http://localhost:3000/posts')
+    //     .then(res => res.json())
+    //     .then(res => {
+    //         res.forEach(item => {
+    //              cards.push(item);
+    //         });
+    //     });  
+    // }catch {
+
+    // }
+    
+        const local =JSON.parse(localStorage.getItem('words')) 
+        console.log(local)
+
+        local.forEach(item => {
+            cards.push(item);
+        })
+
+        const card = cards[Math.floor(Math.random() * cards.length)];
+   
+        let { ru: ru, eng: eng, id = '' } = card;
+        const newCard = new Card(eng, ru, '').render();
+
+  
+};
 
 
 function saveCard() {
     const card = {};
+  
     card.ru = rusInput.value;
     card.eng = engInput.value;
+    card.id = Math.random();
     cards.push(card);
-
+   
+    // postCard('http://localhost:3000/posts', card);
 }
+
+async function postCard(url, data) {
+    const res = await fetch(`${url}`, {
+        method: 'POST',
+        headers: {
+            "Content-type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+}
+
+
+const deleteBtn = document.querySelector('.delete')
+deleteBtn.addEventListener('click' , function(){
+    fetch('http://localhost:3000/posts/0.6156288728783055' , {
+        method: 'DELETE',
+    
+    });
+})
+
+document.querySelector('.local').addEventListener('click' , function () {
+    localStorage.setItem('words' , JSON.stringify(cards));
+});
+
+
