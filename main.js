@@ -1,16 +1,39 @@
+let wordWindowOpened = false;
+let wordListOpened = false;
+const rusInput = document.querySelector('.rus');
+const engInput = document.querySelector('.eng');
+const addBtn = document.querySelector('.add');
+const startBtn = document.querySelector('.start');
+const showListBtn = document.querySelector('.showList')
+
+
+addBtn.addEventListener('click', saveCard);
+startBtn.addEventListener('click', renderCard);
+showListBtn.addEventListener('click', getWordsList);
+
+let cards = [
+    { ru: 'дом', eng: 'home' },
+    { ru: 'склон', eng: 'slope' },
+    { ru: 'кислый', eng: 'sour' },
+    { ru: 'мармелад', eng: 'marmalade' },
+    { ru: 'звать', eng: 'call' },
+    { ru: 'тень', eng: 'shadow' },
+];
+
 class Card {
     constructor(eng, rus, id) {
         this.eng = eng,
             this.rus = rus,
             this.id = id
     }
+
     render() {
         const parentCard = document.querySelector('.card__box');
         const div = document.createElement('div');
         div.classList.add('card');
         div.innerHTML = `      
         <div class="options">
-            <p class="engP">${this.eng}</p>
+            <p class="englishTranslate">${this.eng}</p>
             <p>${this.rus}</p>
         </div>
         <div class="answer">
@@ -18,58 +41,59 @@ class Card {
            <button class="check__btn">Проверить</button>
         </div>
         `;
-
         parentCard.append(div);
     }
 
 }
-let cards = [{ru: 'дом', eng: 'home', id: 0.3093031704097471}];
 
-const rusInput = document.querySelector('.rus');
-const engInput = document.querySelector('.eng');
-const addBtn = document.querySelector('.add');
-const startBtn = document.querySelector('.start');
-
-
-
-addBtn.addEventListener('click', saveCard);
-startBtn.addEventListener('click', renderCard);
+localStorage.getItem('words' , JSON.parse(cards))
 
 
 function renderCard() {
+    if (wordListOpened) {
+        closeWordsList();
+    }
     try {
         document.querySelector('.card').remove();
         statusMessage.remove();
     } catch { }
 
+
     getRandomCard();
-    toggleTranslate();
-
+    document.querySelector('.check__translate').focus();
+    toggleTranslate('0');
+    wordWindowOpened = true;
     document.querySelector('.check__btn').addEventListener('click', checkTranslate);
-
-
+    document.querySelector('.check__translate').addEventListener('keyup', test);
 }
 
-console.log(document.querySelector('.check__btn'))
+function test(e) {
+    if (e.keyCode === 13) {
+        checkTranslate();
+    }
+}
 
-
-checkTranslate = () => {
-    const trueAnswer = document.querySelector('.engP');
+function checkTranslate() {
+    const trueAnswer = document.querySelector('.englishTranslate');
     const answer = document.querySelector('.check__translate');
-    
+
     const statusMessage = document.createElement('div');
     document.querySelector('.card').append(statusMessage);
 
-    if(statusMessage){
+    if (statusMessage) {
         document.querySelector('.check__btn').disabled = true;
     }
+
     if (answer.value === trueAnswer.innerHTML) {
         statusMessage.textContent = 'Верно';
         setTimeout(() => {
             document.querySelector('.card').remove();
             renderCard();
         }, 1000);
-    } else {
+    }
+
+    else {
+        toggleTranslate('1')
         statusMessage.textContent = 'Попробуйте еще раз';
 
         setTimeout(() => {
@@ -77,79 +101,119 @@ checkTranslate = () => {
             renderCard();
         }, 1000);
     }
-
 };
 
 
-toggleTranslate = () => {
-    const engP = document.querySelector('.engP');
-
-    engP.style.display = 'none';
+function toggleTranslate(value) {
+    const engP = document.querySelector('.englishTranslate');
+    engP.style.opacity = value;
 };
 
 
+function getRandomCard() {
+    document.querySelector('.card__box').style.columnCount = ''
+    const card = cards[Math.floor(Math.random() * cards.length)];
+    let { ru: ru, eng: eng } = card;
+    const newCard = new Card(eng, ru).render();
 
-getRandomCard =  (res) => {
-    // try {
-    //     fetch('http://localhost:3000/posts')
-    //     .then(res => res.json())
-    //     .then(res => {
-    //         res.forEach(item => {
-    //              cards.push(item);
-    //         });
-    //     });  
-    // }catch {
-
-    // }
-    
-        const local =JSON.parse(localStorage.getItem('words')) 
-        console.log(local)
-
-        local.forEach(item => {
-            cards.push(item);
-        })
-
-        const card = cards[Math.floor(Math.random() * cards.length)];
-   
-        let { ru: ru, eng: eng, id = '' } = card;
-        const newCard = new Card(eng, ru, '').render();
-
-  
 };
 
 
 function saveCard() {
     const card = {};
-  
     card.ru = rusInput.value;
     card.eng = engInput.value;
-    card.id = Math.random();
+    if (card.ru === '' || card.eng === '') {
+        return;
+    }
     cards.push(card);
+    localStorage.setItem('words', JSON.stringify(cards));
+    addCardMessage(card.ru, card.eng);
+    clearInputs();
+}
+
+function addCardMessage(eng, ru) {
+    const message = document.querySelector('.addCardMessage');
+    message.innerHTML = `Вы добавили слово  </br> ${eng} - ${ru}`
+    message.style.opacity = '1'
+
+    setTimeout(() => {
+        message.style.opacity = '0'
+    }, 1500);
+
+}
+
+
+function clearInputs() {
+    rusInput.value = '';
+    engInput.value = '';
+}
+
+
+function getWordsList() {
+
+    if (wordWindowOpened) {
+        closeWordWindow();
+    }
+    if (document.querySelector('.listItem') || document.querySelector('.card')) {
+        let oldList = document.querySelectorAll('.listItem');
+        oldList.forEach(item => {
+            item.remove()
+        });
+    }
+    try {
+        const storageList = JSON.parse(localStorage.getItem('words'));
+        storageList.forEach(item => {
+            renderList(item);
+        });
+    } catch {
+        cards.forEach(item => {
+            renderList(item);
+        });
+    }
+    wordListOpened = true;
    
-    // postCard('http://localhost:3000/posts', card);
 }
 
-async function postCard(url, data) {
-    const res = await fetch(`${url}`, {
-        method: 'POST',
-        headers: {
-            "Content-type": "application/json"
-        },
-        body: JSON.stringify(data)
-    });
+function renderList(item) {
+    let { ru: ru, eng: eng } = item;
+    const itemList = document.createElement('p')
+    const removeBtn = document.createElement('button')
+    const parentList = document.querySelector('.card__box');
+    parentList.style.columnCount = 2;
+    removeBtn.textContent = 'Удалить';
+
+    itemList.classList.add('listItem');
+    removeBtn.classList.add('removeItemBtn');
+    itemList.textContent = `${ru} - ${eng}`;
+
+    parentList.append(itemList);
+    itemList.append(removeBtn);
+
+
+}
+
+function closeWordWindow() {
+    document.querySelector('.card').remove();
+    wordWindowOpened = false;
+}
+
+function closeWordsList() {
+    document.querySelectorAll('.listItem').forEach(item => {
+        item.remove();
+    })
+    wordListOpened = false;
 }
 
 
-const deleteBtn = document.querySelector('.delete')
-deleteBtn.addEventListener('click' , function(){
-    fetch('http://localhost:3000/posts/0.6156288728783055' , {
-        method: 'DELETE',
-    
-    });
+document.querySelector('.card__box').addEventListener('click' , function(e){
+    if(e.target.classList.contains('listItem')){
+        e.target.remove()
+    }
 })
 
-document.querySelector('.local').addEventListener('click' , function () {
-    localStorage.setItem('words' , JSON.stringify(cards));
-});
+
+
+
 
 
