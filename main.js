@@ -1,3 +1,4 @@
+start();
 let wordWindowOpened = false;
 let wordListOpened = false;
 const rusInput = document.querySelector('.rus');
@@ -5,28 +6,14 @@ const engInput = document.querySelector('.eng');
 const addBtn = document.querySelector('.add');
 const startBtn = document.querySelector('.start');
 const showListBtn = document.querySelector('.showList')
-
-
 addBtn.addEventListener('click', saveCard);
 startBtn.addEventListener('click', renderCard);
 showListBtn.addEventListener('click', getWordsList);
-
-let cards = [
-    { ru: 'дом', eng: 'home' },
-    { ru: 'склон', eng: 'slope' },
-    { ru: 'кислый', eng: 'sour' },
-    { ru: 'мармелад', eng: 'marmalade' },
-    { ru: 'звать', eng: 'call' },
-    { ru: 'тень', eng: 'shadow' },
-];
-
 class Card {
-    constructor(eng, rus, id) {
+    constructor(eng, rus) {
         this.eng = eng,
-            this.rus = rus,
-            this.id = id
+            this.rus = rus
     }
-
     render() {
         const parentCard = document.querySelector('.card__box');
         const div = document.createElement('div');
@@ -43,11 +30,13 @@ class Card {
         `;
         parentCard.append(div);
     }
-
 }
-
-localStorage.getItem('words' , JSON.parse(cards))
-
+function start() {
+    const card = {};
+    card.ru = 'привет';
+    card.eng = 'hi';
+    localStorage.setItem(card.ru, JSON.stringify(card))
+}
 
 function renderCard() {
     if (wordListOpened) {
@@ -57,21 +46,15 @@ function renderCard() {
         document.querySelector('.card').remove();
         statusMessage.remove();
     } catch { }
-
-
+    document.querySelector('.card__box').style.columnCount = ''
     getRandomCard();
     document.querySelector('.check__translate').focus();
     toggleTranslate('0');
     wordWindowOpened = true;
     document.querySelector('.check__btn').addEventListener('click', checkTranslate);
-    document.querySelector('.check__translate').addEventListener('keyup', test);
+    document.querySelector('.check__translate').addEventListener('keyup', enter);
 }
 
-function test(e) {
-    if (e.keyCode === 13) {
-        checkTranslate();
-    }
-}
 
 function checkTranslate() {
     const trueAnswer = document.querySelector('.englishTranslate');
@@ -104,15 +87,8 @@ function checkTranslate() {
 };
 
 
-function toggleTranslate(value) {
-    const engP = document.querySelector('.englishTranslate');
-    engP.style.opacity = value;
-};
-
-
 function getRandomCard() {
-    document.querySelector('.card__box').style.columnCount = ''
-    const card = cards[Math.floor(Math.random() * cards.length)];
+    let card = JSON.parse(localStorage.getItem(localStorage.key(getRandomInt(localStorage.length))))
     let { ru: ru, eng: eng } = card;
     const newCard = new Card(eng, ru).render();
 
@@ -120,16 +96,23 @@ function getRandomCard() {
 
 
 function saveCard() {
+
+
     const card = {};
     card.ru = rusInput.value;
     card.eng = engInput.value;
+    card.id = Math.random()
     if (card.ru === '' || card.eng === '') {
         return;
     }
-    cards.push(card);
-    localStorage.setItem('words', JSON.stringify(cards));
+
+    localStorage.setItem(card.id, JSON.stringify(card))
     addCardMessage(card.ru, card.eng);
     clearInputs();
+    
+    if(wordListOpened || !wordWindowOpened ){
+        getWordsList()
+    }
 }
 
 function addCardMessage(eng, ru) {
@@ -144,11 +127,6 @@ function addCardMessage(eng, ru) {
 }
 
 
-function clearInputs() {
-    rusInput.value = '';
-    engInput.value = '';
-}
-
 
 function getWordsList() {
 
@@ -161,24 +139,21 @@ function getWordsList() {
             item.remove()
         });
     }
-    try {
-        const storageList = JSON.parse(localStorage.getItem('words'));
-        storageList.forEach(item => {
-            renderList(item);
-        });
-    } catch {
-        cards.forEach(item => {
-            renderList(item);
-        });
+
+    for (let i = 0; i < localStorage.length; i++) {
+        let card = JSON.parse(localStorage.getItem(localStorage.key(i)))
+
+        renderList(card);
     }
+
     wordListOpened = true;
-   
 }
 
 function renderList(item) {
-    let { ru: ru, eng: eng } = item;
+    let { ru: ru, eng: eng, id: id } = item;
     const itemList = document.createElement('p')
     const removeBtn = document.createElement('button')
+    removeBtn.setAttribute('id', item.id);
     const parentList = document.querySelector('.card__box');
     parentList.style.columnCount = 2;
     removeBtn.textContent = 'Удалить';
@@ -186,6 +161,7 @@ function renderList(item) {
     itemList.classList.add('listItem');
     removeBtn.classList.add('removeItemBtn');
     itemList.textContent = `${ru} - ${eng}`;
+
 
     parentList.append(itemList);
     itemList.append(removeBtn);
@@ -205,14 +181,39 @@ function closeWordsList() {
     wordListOpened = false;
 }
 
+function toggleTranslate(value) {
+    const engP = document.querySelector('.englishTranslate');
+    engP.style.opacity = value;
+};
 
-document.querySelector('.card__box').addEventListener('click' , function(e){
-    if(e.target.classList.contains('listItem')){
-        e.target.remove()
+function clearInputs() {
+    rusInput.value = '';
+    engInput.value = '';
+}
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+
+}
+
+function enter(e) {
+    if (e.keyCode === 13) {
+        checkTranslate();
     }
-})
+}
 
 
+function removeWord(e) {
+    if (e.target.classList.contains('removeItemBtn')) {
+        let id = e.target.getAttribute('id')
+        localStorage.removeItem(id);
+        e.target.parentElement.remove();
+    }
+}
+
+const parent = document.querySelector('.card__box').addEventListener('click', function (e) {
+    removeWord(e)
+});
 
 
 
