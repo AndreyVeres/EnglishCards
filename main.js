@@ -35,6 +35,7 @@ function start() {
     const card = {};
     card.ru = 'привет';
     card.eng = 'hi';
+    card.id = Math.random()
     localStorage.setItem(card.ru, JSON.stringify(card));
 }
 function renderCard() {
@@ -119,12 +120,16 @@ function getWordsList() {
             item.remove();
         });
     }
+    const sortStorage = [];
     for (let i = 0; i < localStorage.length; i++) {
-        let card = JSON.parse(localStorage.getItem(localStorage.key(i)));
-        renderList(card);
+        sortStorage.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
     }
+    sortStorage.sort((a, b) => a.ru > b.ru ? 1 : -1);
+    sortStorage.forEach(item => renderList(item))
+
     wordListOpened = true;
 }
+
 function renderList(item) {
     let { ru: ru, eng: eng, id: id } = item;
     const itemList = document.createElement('p');
@@ -176,6 +181,9 @@ function removeWord(e) {
 const parent = document.querySelector('.card__box').addEventListener('click', function (e) {
     removeWord(e);
 });
+
+
+
 
 
 
