@@ -1,8 +1,6 @@
 if (!document.cookie) {
     preloader();
 }
-
-
 function preloader() {
     const buttons = document.querySelectorAll('.popup__btn');
     const preloader = document.querySelector('.preloader');
@@ -24,9 +22,6 @@ function preloader() {
         });
         popups[popupCount].style.display = 'flex';
     }
-
-    
-
     buttons.forEach(btn => btn.addEventListener('click', nextPopup));
 }
 
