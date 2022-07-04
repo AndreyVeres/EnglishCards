@@ -32,9 +32,10 @@ class Card {
     }
 }
 function start() {
+
     const card = {};
-    card.ru = 'привет';
-    card.eng = 'hi';
+    card.ru = 'Это тестовое слово';
+    card.eng = 'Добавляйте свои слова';
     card.id = Math.random()
     localStorage.setItem(card.ru, JSON.stringify(card));
 }
@@ -82,7 +83,7 @@ function checkTranslate() {
     }
 }
 function getRandomCard() {
-    let card = JSON.parse(localStorage.getItem(localStorage.key(getRandomInt(localStorage.length))))
+    let card = JSON.parse(localStorage.getItem(localStorage.key(getRandomInt(localStorage.length))));
     let { ru: ru, eng: eng } = card;
     const newCard = new Card(eng, ru).render();
 }
@@ -181,6 +182,7 @@ function removeWord(e) {
 const parent = document.querySelector('.card__box').addEventListener('click', function (e) {
     removeWord(e);
 });
+
 
 
 
