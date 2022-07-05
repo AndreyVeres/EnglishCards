@@ -4,7 +4,7 @@
     box-sizing: border-box;
 }
 body {
-   background-color: #120907;
+   background-color: black;
     color: #fff;
 }
 .wrapper {
@@ -50,7 +50,7 @@ body {
     transition: opacity 2s;
 }
 .card {
-    background-color: #120907;
+    background-color: black;
     width: 600px;
     height: 300px;
     margin: 100px auto;
@@ -160,7 +160,7 @@ button:hover {
     bottom: 5px;
     box-shadow: 2px 2px 5px black;
 }
-.popup__text {
+/* .popup__text {
     font-size: 30px;
     margin: auto;
     padding: 10px;
@@ -190,4 +190,4 @@ button:hover {
     width: 500px;
     height: 200px;
     display: none;
-}
+} */
